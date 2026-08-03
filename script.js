@@ -48,6 +48,31 @@ function buildPrayerApiUrl(timestamp) {
   return `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${appConfig.latitude}&longitude=${appConfig.longitude}&method=${appConfig.prayerMethod}`;
 }
 
+async function updateDateDisplay() {
+  const dateElement = document.getElementById('date-display');
+  if (!dateElement) return;
+
+  const now = new Date();
+  const gregorianDate = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  try {
+    const response = await fetch('https://api.aladhan.com/v1/gToH?date=03-08-2026');
+    if (!response.ok) throw new Error('Hijri API request failed');
+
+    const data = await response.json();
+    const hijri = data?.data?.hijri;
+    const islamicDate = hijri ? `${hijri.day} ${hijri.month.en} ${hijri.year}` : 'Hijri date unavailable';
+    dateElement.textContent = `${gregorianDate} • ${islamicDate}`;
+  } catch (error) {
+    dateElement.textContent = `${gregorianDate} • Hijri date unavailable`;
+  }
+}
+
 function updateTime() {
   const now = new Date();
   let timeString = now.toLocaleTimeString();
@@ -430,6 +455,7 @@ async function initializeApp() {
   await loadConfig();
 
   updateTime();
+  await updateDateDisplay();
   updatePrayerTimes();
   updateTimeUntilNext();
   updateIqamaTimes();
