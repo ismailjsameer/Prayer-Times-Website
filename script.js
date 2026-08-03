@@ -107,24 +107,28 @@ function updateCurrentPrayer() {
   prayerCardMaghrib.classList.remove('maghrib-current');
   prayerCardIsha.classList.remove('isha-current');
 
-  switch (currentPrayer) {
-    case 'Fajr':
+  const normalizedPrayer = currentPrayer.toLowerCase();
+
+  switch (normalizedPrayer) {
+    case 'fajr':
+    case 'sunrise':
       prayerCardFajr.classList.add('fajr-current');
       break;
-    case 'Dhuhr':
+    case 'dhuhr':
+    case 'zuhr':
       prayerCardDhuhr.classList.add('dhuhr-current');
       break;
-    case 'Asr':
+    case 'asr':
       prayerCardAsr.classList.add('asr-current');
       break;
-    case 'Maghrib':
+    case 'maghrib':
       prayerCardMaghrib.classList.add('maghrib-current');
       break;
-    case 'Isha':
+    case 'isha':
       prayerCardIsha.classList.add('isha-current');
       break;
     default:
-      console.log('No current prayer or unrecognized prayer name');
+      break;
   }
 }
 
