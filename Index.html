@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Times</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <!-- Audio Element -->
+  <audio id="adhan-audio" src="./Adhan.mp3" preload="auto">Loading</audio>
+
+  <div class="container">
+    <!-- Header: Clock & Current Prayer Badge -->
+    <div class="header">
+      <h1 id="clock">Loading time...</h1>
+      <div id="current-prayer">Loading...</div>
+    </div>
+
+    <!-- Next Prayer Timer -->
+    <div class="timer-section">
+      <p><span id="time-until-next-prayer">Loading...</span></p>
+    </div>
+
+    <!-- Horizontal Prayer Cards Grid -->
+    <div class="prayer-grid">
+      
+      <!-- Fajr Card (Includes Sunrise) -->
+      <div class="prayer-card-fajr">
+        <div class="prayer-name">Fajr</div>
+        <div class="prayer-time" id="fajr-time">Loading...</div>
+        <div class="sub-prayer">
+          <span class="sub-label">Sunrise</span>
+          <div class="sub-time" id="sunrise-time">Loading...</div>
+        </div>
+        <div class="iqama-time" id="fajr-Iqama-time">Loading...</div>
+      </div>
+
+      <!-- Dhuhr Card -->
+      <div class="prayer-card-dhuhr">
+        <div class="prayer-name">Dhuhr</div>
+        <div class="prayer-time" id="zuhr-time">Loading...</div>
+        <div class="iqama-time" id="zuhr-Iqama-time">Loading...</div>
+      </div>
+
+      <!-- Asr Card -->
+      <div class="prayer-card-asr">
+        <div class="prayer-name">Asr</div>
+        <div class="prayer-time" id="asr-time">Loading...</div>
+        <div class="iqama-time" id="asr-Iqama-time">Loading...</div>
+      </div>
+
+      <!-- Maghrib Card -->
+      <div class="prayer-card-maghrib">
+        <div class="prayer-name">Maghrib</div>
+        <div class="prayer-time" id="maghrib-time">Loading...</div>
+        <div class="iqama-time" id="maghrib-Iqama-time">Loading...</div>
+      </div>
+
+      <!-- Isha Card -->
+      <div class="prayer-card-isha">
+        <div class="prayer-name">Isha</div>
+        <div class="prayer-time" id="isha-time">Loading...</div>
+        <div class="iqama-time" id="isha-Iqama-time">Loading...</div>
+      </div>
+
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button id="AdhanTest">Test Adhan</button>
+      <button id="AdhanStop">Stop Adhan</button>
+    </div>
+  </div>
+
+  <!-- Script loaded with defer to ensure HTML is ready -->
+  <script defer src="./script.js"></script>
+</body>
+</html>
