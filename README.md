@@ -1,6 +1,6 @@
 # Prayer Times Web App
 
-A simple prayer times dashboard that fetches prayer timings from the Aladhan API and displays them in a clean, responsive card layout.
+A simple prayer times dashboard that fetches prayer timings from the Aladhan API (https://aladhan.com) and displays them in a clean, responsive card layout.
 
 ## Features
 - Live clock
