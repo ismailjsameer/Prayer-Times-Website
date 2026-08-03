@@ -4,8 +4,8 @@ let AhdanPlaying = false;
 let audio; // Declare audio globally so it can be used in the event listener
 
 const defaultConfig = {
-  latitude: 0,
-  longitude: 0,
+  latitude: 40.7128,
+  longitude: -74.0060,
   prayerMethod: 2,
   iqamaTimes: {
     fajr: 60,
@@ -22,28 +22,26 @@ const defaultConfig = {
 
 let appConfig = { ...defaultConfig };
 
-async function loadConfig() {
-  try {
-    const response = await fetch('./.config');
-    if (!response.ok) throw new Error('Config file not found');
+function normalizeConfig(data) {
+  return {
+    ...defaultConfig,
+    ...data,
+    latitude: Number(data?.latitude) || defaultConfig.latitude,
+    longitude: Number(data?.longitude) || defaultConfig.longitude,
+    prayerMethod: Number(data?.prayerMethod) || defaultConfig.prayerMethod,
+    iqamaTimes: {
+      ...defaultConfig.iqamaTimes,
+      ...(data?.iqamaTimes || {})
+    },
+    darkMode: {
+      ...defaultConfig.darkMode,
+      ...(data?.darkMode || {})
+    }
+  };
+}
 
-    const data = await response.json();
-    appConfig = {
-      ...defaultConfig,
-      ...data,
-      iqamaTimes: {
-        ...defaultConfig.iqamaTimes,
-        ...(data.iqamaTimes || {})
-      },
-      darkMode: {
-        ...defaultConfig.darkMode,
-        ...(data.darkMode || {})
-      }
-    };
-  } catch (error) {
-    console.warn('Using default config because .config could not be loaded:', error);
-    appConfig = { ...defaultConfig };
-  }
+async function loadConfig() {
+  appConfig = { ...defaultConfig };
 }
 
 function buildPrayerApiUrl(timestamp) {
@@ -141,12 +139,16 @@ function updatePrayerTimes() {
   };
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const url = `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${latitude}&longitude=${longitude}&method=2`;
+  const url = buildPrayerApiUrl(timestamp);
 
   fetch(url)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`Prayer API request failed (${response.status})`);
+      return response.json();
+    })
     .then(data => {
-      const timings = data.data.timings;
+      const timings = data?.data?.timings;
+      if (!timings) throw new Error('No prayer timing data returned');
 
       const processTime = (el, timeStr24) => {
         if (!el) return;
@@ -181,12 +183,16 @@ function FindCurrentPrayer() {
   };
 
   const timestamp = Math.floor(Date.now() / 1000);
-  const url = `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${latitude}&longitude=${longitude}&method=2`;
+  const url = buildPrayerApiUrl(timestamp);
 
   fetch(url)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`Prayer API request failed (${response.status})`);
+      return response.json();
+    })
     .then(data => {
-      const timings = data.data.timings;
+      const timings = data?.data?.timings;
+      if (!timings) throw new Error('No prayer timing data returned');
 
       const processTime = (el, timeStr24) => {
         if (!el) return;
