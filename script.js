@@ -414,6 +414,7 @@ function AdhanStop() {
   if (!audio) return;
   audio.pause();
   audio.currentTime = 0;
+  AhdanPlaying = false; 
 }
 
 function playAdhanIfNeeded() {
