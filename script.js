@@ -1,6 +1,6 @@
 console.log('Script Loaded!');
 let userHasInteracted = false;
-let AhdanPlaying = false;
+let AdhanPlaying = false;
 let audio; // Declare audio globally so it can be used in the event listener
 
 const defaultConfig = {
@@ -406,15 +406,22 @@ function updateIqamaTimes() {
 
 function playAdhan() {
   if (!audio) return;
-  audio.play().catch(e => console.log("Play failed:", e));
-  console.log('Adhan Played!');
+  audio.play()
+    .then(() => {
+      AdhanPlaying = true;
+      console.log('Adhan Played!');
+    })
+    .catch(e => {
+      AdhanPlaying = false;
+      console.log("Play failed:", e);
+    });
 }
 
 function AdhanStop() {
   if (!audio) return;
   audio.pause();
   audio.currentTime = 0;
-  AhdanPlaying = false; 
+  AdhanPlaying = false; 
 }
 
 function playAdhanIfNeeded() {
@@ -438,15 +445,13 @@ function playAdhanIfNeeded() {
 
   if (!fajr || !isha) return;
 
-  // Check if current time matches any prayer time exactly (within 1 minute)
   const isMatch = (prayerTime) => {
     if (!prayerTime) return false;
     return Math.abs(currentTotalMinutes - prayerTime) < 1;
   };
 
-  if ((isMatch(fajr) || isMatch(zuhr) || isMatch(asr) || isMatch(maghrib) || isMatch(isha)) && !AhdanPlaying) {
+  if ((isMatch(fajr) || isMatch(zuhr) || isMatch(asr) || isMatch(maghrib) || isMatch(isha)) && !AdhanPlaying) {
     playAdhan();
-    AhdanPlaying = true; // ✅ FIXED: Removed 'let' to update global variable
   }
 }
 
@@ -454,6 +459,9 @@ function playAdhanIfNeeded() {
 
 async function initializeApp() {
   await loadConfig();
+
+  // Initialize the audio element before any playback checks run.
+  audio = document.getElementById('adhan-audio');
 
   updateTime();
   await updateDateDisplay();
@@ -463,14 +471,11 @@ async function initializeApp() {
   playAdhanIfNeeded();
   updateDarkMode();
 
-  // Initialize Audio Element Globally
-  audio = document.getElementById('adhan-audio');
-
   // Event Listener for Audio End
   if (audio) {
     audio.addEventListener('ended', function() {
       console.log('Adhan has finished playing');
-      AhdanPlaying = false;
+      AdhanPlaying = false;
     });
   }
 
