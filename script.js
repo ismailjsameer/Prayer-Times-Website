@@ -1,6 +1,9 @@
 console.log('Script Loaded!');
 let userHasInteracted = false;
 let AdhanPlaying = false;
+let handledAdhanKey = null;
+let darkModeOverrideUntil = 0;
+let darkModeOverrideState = null;
 let audio; // Declare audio globally so it can be used in the event listener
 
 const defaultConfig = {
@@ -61,7 +64,10 @@ async function updateDateDisplay() {
   });
 
   try {
-    const response = await fetch('https://api.aladhan.com/v1/gToH?date=03-08-2026');
+
+    const date = new Date();
+    const formatted = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+    const response = await fetch('https://api.aladhan.com/v1/gToH?date=' + formatted);
     if (!response.ok) throw new Error('Hijri API request failed');
 
     const data = await response.json();
@@ -71,6 +77,17 @@ async function updateDateDisplay() {
   } catch (error) {
     dateElement.textContent = `${gregorianDate} • Hijri date unavailable`;
   }
+}
+
+function scheduleDateDisplayUpdate() {
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+
+  setTimeout(async () => {
+    await updateDateDisplay();
+    scheduleDateDisplayUpdate();
+  }, nextMidnight.getTime() - now.getTime());
 }
 
 function updateTime() {
@@ -104,6 +121,18 @@ function updateDarkMode() {
   const body = document.body;
   const { startHour, endHour } = appConfig.darkMode;
 
+  if (Date.now() < darkModeOverrideUntil) {
+    body.classList.toggle('dark-mode', darkModeOverrideState);
+    const darkModeButton = document.getElementById('TurnDarkModeOn');
+    if (darkModeButton) {
+      darkModeButton.textContent = body.classList.contains('dark-mode')
+        ? 'Turn Dark Mode Off'
+        : 'Turn Dark Mode On';
+    }
+    return;
+  }
+
+  darkModeOverrideState = null;
   const isNight = hour >= startHour || hour < endHour;
 
   if (isNight) {
@@ -111,6 +140,19 @@ function updateDarkMode() {
   } else {
     body.classList.remove('dark-mode');
   }
+
+  const darkModeButton = document.getElementById('TurnDarkModeOn');
+  if (darkModeButton) {
+    darkModeButton.textContent = body.classList.contains('dark-mode')
+      ? 'Turn Dark Mode Off'
+      : 'Turn Dark Mode On';
+  }
+}
+
+function darkMode() {
+  darkModeOverrideState = !document.body.classList.contains('dark-mode');
+  darkModeOverrideUntil = Date.now() + 30 * 60 * 1000;
+  updateDarkMode();
 }
 
 function updateCurrentPrayer() {
@@ -404,6 +446,24 @@ function updateIqamaTimes() {
   if(sunriseEl) sunriseEl.textContent = '-';
 }
 
+function getCurrentAdhanKey() {
+  const now = new Date();
+  const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+  const prayers = [
+    { name: 'Fajr', id: 'fajr-time' },
+    { name: 'Dhuhr', id: 'zuhr-time' },
+    { name: 'Asr', id: 'asr-time' },
+    { name: 'Maghrib', id: 'maghrib-time' },
+    { name: 'Isha', id: 'isha-time' }
+  ];
+
+  const prayer = prayers.find(({ id }) => getPrayerMinutes(id) === currentTotalMinutes);
+  if (!prayer) return null;
+
+  const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  return `${dateKey}-${prayer.name}`;
+}
+
 function playAdhan() {
   if (!audio) return;
   audio.play()
@@ -421,7 +481,8 @@ function AdhanStop() {
   if (!audio) return;
   audio.pause();
   audio.currentTime = 0;
-  AdhanPlaying = false; 
+  AdhanPlaying = false;
+  handledAdhanKey = getCurrentAdhanKey();
 }
 
 function playAdhanIfNeeded() {
@@ -445,12 +506,21 @@ function playAdhanIfNeeded() {
 
   if (!fajr || !isha) return;
 
-  const isMatch = (prayerTime) => {
-    if (!prayerTime) return false;
-    return Math.abs(currentTotalMinutes - prayerTime) < 1;
-  };
+  const prayerTimes = [
+    { name: 'Fajr', time: fajr },
+    { name: 'Dhuhr', time: zuhr },
+    { name: 'Asr', time: asr },
+    { name: 'Maghrib', time: maghrib },
+    { name: 'Isha', time: isha }
+  ];
+  const matchingPrayer = prayerTimes.find(({ time }) => time === currentTotalMinutes);
 
-  if ((isMatch(fajr) || isMatch(zuhr) || isMatch(asr) || isMatch(maghrib) || isMatch(isha)) && !AdhanPlaying) {
+  if (matchingPrayer && !AdhanPlaying) {
+    const dateKey = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const adhanKey = `${dateKey}-${matchingPrayer.name}`;
+    if (adhanKey === handledAdhanKey) return;
+
+    handledAdhanKey = adhanKey;
     playAdhan();
   }
 }
@@ -465,6 +535,7 @@ async function initializeApp() {
 
   updateTime();
   await updateDateDisplay();
+  scheduleDateDisplayUpdate();
   updatePrayerTimes();
   updateTimeUntilNext();
   updateIqamaTimes();
@@ -498,6 +569,13 @@ async function initializeApp() {
     });
   }
 
+  const button3 = document.getElementById('TurnDarkModeOn');
+  if (button3) {
+    button3.addEventListener('click', function() {
+      darkMode();
+    });
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
@@ -516,7 +594,6 @@ initializeApp();
 // --- INTERVALS ---
 setInterval(updatePrayerTimes, 24 * 60 * 60 * 1000);
 setInterval(FindCurrentPrayer, 60 * 1000);
-
 setInterval(updateTime, 1000);
 setInterval(updateTimeUntilNext, 1000);
 setInterval(updateIqamaTimes, 1000);
