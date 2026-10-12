@@ -7,8 +7,8 @@ let darkModeOverrideState = null;
 let audio; // Declare audio globally so it can be used in the event listener
 
 const defaultConfig = {
-  latitude: 40.7128,
-  longitude: -74.0060,
+  latitude: 0,
+  longitude: 0,
   prayerMethod: 2,
   iqamaTimes: {
     fajr: 60,
@@ -18,7 +18,7 @@ const defaultConfig = {
     isha: 5
   },
   darkMode: {
-    startHour: 22,
+    startHour: 21,
     endHour: 6
   }
 };
@@ -44,7 +44,17 @@ function normalizeConfig(data) {
 }
 
 async function loadConfig() {
-  appConfig = { ...defaultConfig };
+  try {
+    const response = await fetch('./.config', { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Config request failed (${response.status})`);
+    }
+
+    appConfig = normalizeConfig(await response.json());
+  } catch (error) {
+    console.error('Unable to load .config; using default settings:', error);
+    appConfig = { ...defaultConfig };
+  }
 }
 
 function buildPrayerApiUrl(timestamp) {
