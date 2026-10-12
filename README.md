@@ -17,11 +17,12 @@ A polished prayer times dashboard that fetches prayer timings from the Aladhan A
 - Index.html — page structure and UI layout
 - style.css — visual styling, responsive layout, and dark mode
 - script.js — app logic, API calls, prayer calculations, and UI updates
-- config.json — customizable location and prayer settings
+- config.local.json — private local location and prayer settings (not committed)
+- config.json — public fallback settings with `0, 0` coordinates
 - sw.js — service worker for offline support
 
 ## Configuration
-Edit [config.json](config.json) to customize:
+For local use, create `config.local.json` by copying [config.local.example.json](config.local.example.json), then customize it:
 - latitude
 - longitude
 - prayer method
@@ -47,6 +48,8 @@ Example:
   }
 }
 ```
+
+`config.local.json` is ignored by Git and must not be committed. GitHub Pages uses the public [config.json](config.json), which intentionally contains `0, 0`.
 
 ## Notes
 - The app uses the Aladhan API and requires an internet connection for prayer times.

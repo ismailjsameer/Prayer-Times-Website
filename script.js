@@ -45,21 +45,25 @@ function normalizeConfig(data) {
 
 async function loadConfig() {
   try {
-    const response = await fetch('./config.json', { cache: 'no-store' });
+    let response = await fetch('./config.local.json', { cache: 'no-store' });
+    if (!response.ok) {
+      response = await fetch('./config.json', { cache: 'no-store' });
+    }
+
     if (!response.ok) {
       throw new Error(`Config request failed (${response.status})`);
     }
 
     appConfig = normalizeConfig(await response.json());
   } catch (error) {
-    console.error('Unable to load config.json; using default settings:', error);
+    console.error('Unable to load local or public config; using default settings:', error);
     appConfig = { ...defaultConfig };
   }
 }
 
 function buildPrayerApiUrl(timestamp) {
   if (!appConfig.latitude || !appConfig.longitude) {
-    console.error('Prayer times unavailable: set non-zero latitude and longitude in config.json.');
+    console.error('Prayer times unavailable: set non-zero latitude and longitude in config.local.json.');
     return null;
   }
 
