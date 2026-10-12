@@ -17,11 +17,11 @@ A polished prayer times dashboard that fetches prayer timings from the Aladhan A
 - Index.html — page structure and UI layout
 - style.css — visual styling, responsive layout, and dark mode
 - script.js — app logic, API calls, prayer calculations, and UI updates
-- .config — customizable location and prayer settings
+- config.json — customizable location and prayer settings
 - sw.js — service worker for offline support
 
 ## Configuration
-Edit [.config](.config) to customize:
+Edit [config.json](config.json) to customize:
 - latitude
 - longitude
 - prayer method

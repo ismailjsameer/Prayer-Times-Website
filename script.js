@@ -45,19 +45,24 @@ function normalizeConfig(data) {
 
 async function loadConfig() {
   try {
-    const response = await fetch('./.config', { cache: 'no-store' });
+    const response = await fetch('./config.json', { cache: 'no-store' });
     if (!response.ok) {
       throw new Error(`Config request failed (${response.status})`);
     }
 
     appConfig = normalizeConfig(await response.json());
   } catch (error) {
-    console.error('Unable to load .config; using default settings:', error);
+    console.error('Unable to load config.json; using default settings:', error);
     appConfig = { ...defaultConfig };
   }
 }
 
 function buildPrayerApiUrl(timestamp) {
+  if (!appConfig.latitude || !appConfig.longitude) {
+    console.error('Prayer times unavailable: set non-zero latitude and longitude in config.json.');
+    return null;
+  }
+
   return `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${appConfig.latitude}&longitude=${appConfig.longitude}&method=${appConfig.prayerMethod}`;
 }
 
@@ -221,6 +226,7 @@ function updatePrayerTimes() {
 
   const timestamp = Math.floor(Date.now() / 1000);
   const url = buildPrayerApiUrl(timestamp);
+  if (!url) return;
 
   fetch(url)
     .then(response => {
@@ -265,6 +271,7 @@ function FindCurrentPrayer() {
 
   const timestamp = Math.floor(Date.now() / 1000);
   const url = buildPrayerApiUrl(timestamp);
+  if (!url) return;
 
   fetch(url)
     .then(response => {
